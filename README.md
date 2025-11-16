@@ -55,72 +55,104 @@ The sequence detector should produce an output `Z = 1` whenever the input sequen
 ## **Program**
 
 ```verilog
-// Sequence Detector for "1011" using Moore Machine
-module moore_seq_detector(
-    input clk, reset, x,
-    output reg z
-);
-    // State encoding
-    parameter S0 = 3'b000,
-              S1 = 3'b001,
-              S2 = 3'b010,
-              S3 = 3'b011,
-              S4 = 3'b100;
-
-    reg [2:0] state, next_state;
-
-    // State transition logic
-  
-        endcase
-    end
+module moore_seq(in,clk,rst,out);
+input in,clk,rst;
+output reg out;
+parameter S0=3'b000,
+          S1=3'b001,
+          S2=3'b010,
+          S3=3'b011,
+          S4= 3'b100;
+reg [2:0] cs,ns;
+always @ (posedge clk or posedge rst)
+begin 
+    if (rst==1)
+        cs <= S0;
+    else
+        cs <=ns;
+end
+always @ (*)
+begin
+    case (cs)
+        S0: begin
+                if (in)
+                    ns=S1;
+                else
+                    ns= S0;
+            end
+         S1: begin
+                if (in)
+                    ns = S1;
+                else
+                    ns = S2;
+             end
+          S2: begin
+                if (in)
+                    ns = S3;
+                else
+                    ns = S0;
+             end
+          S3: begin
+                if (in)
+                    ns = S4;
+                else
+                    ns = S2;
+             end
+          S4: begin
+                if (in)
+                    ns = S1;
+                else
+                    ns = S0;
+             end 
+          default : ns = S0;
+     endcase
+end
+always @ (*)
+begin 
+    case(cs)
+        S4: out=  1'b1;
+        default: out= 1'b0;
+    endcase
+end
 endmodule
 ```
 ### Testbench
 ```
-module tb_moore_seq_detector;
-    reg clk, reset, x;
-    wire z;
+`timescale 1ns/1ps
+module tb_moore_seq;
+reg in,clk,rst;
+wire out;
+moore_seq uut(in,clk,rst,out);
+initial
+begin
+clk=0;
+forever #5clk= ~clk;
+end
 
-    moore_seq_detector uut(clk, reset, x, z);
+initial 
+begin
+rst=1;
+in=0;
+#10;
+rst=0;
+in = 1;#10;
+in = 0;#10;
+in = 1;#10;
+in = 1;#10;
 
-    // Clock generation
-    always #5 clk = ~clk;
-
-    initial begin
-        clk = 0;
-        reset = 1;
-        x = 0;
-        #10 reset = 0;
-
-        // Input sequence: 1 0 1 1 0 1 0 1 1
-        x = 1; #10;
-        x = 0; #10;
-        x = 1; #10;
-        x = 1; #10;
-        x = 0; #10;
-        x = 1; #10;
-        x = 0; #10;
-        x = 1; #10;
-        x = 1; #10;
-        #10 $finish;
-    end
-
-    initial begin
-        $monitor("Time=%0t | X=%b | Z=%b | State=%b", $time, x, z, uut.state);
-    end
+in = 0;#10;
+in = 1; #10;
+in = 0; #10;
+in = 1; #10;
+in = 1; #10;
+#20;$finish;
+end
 endmodule
 ```
 ### Simulation Output
 -
--
--
--
--
--
-Paste the output here
--
--
--
+![WhatsApp Image 2025-11-13 at 10 23 23_f572cb91](https://github.com/user-attachments/assets/f170195e-65a2-4702-b6a6-935adf36ccbb)
+
 
 ### Result
 
